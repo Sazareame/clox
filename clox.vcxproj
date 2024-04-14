@@ -129,10 +129,13 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="main.cc" />
+    <ClCompile Include="parser.cc" />
     <ClCompile Include="scaner.cc" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="expression.h" />
     <ClInclude Include="lox.hh" />
+    <ClInclude Include="parser.hh" />
     <ClInclude Include="scanner.hh" />
     <ClInclude Include="stdafx.hh" />
     <ClInclude Include="token.hh" />

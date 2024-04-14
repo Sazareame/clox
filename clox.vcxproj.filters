@@ -21,6 +21,9 @@
     <ClCompile Include="scaner.cc">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="parser.cc">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="scanner.hh">
@@ -33,6 +36,12 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="lox.hh">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="expression.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="parser.hh">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

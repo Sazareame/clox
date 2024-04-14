@@ -49,31 +49,48 @@ public:
 		data = std::string(_data);
 	}
 
-	friend std::ostream& operator<<(std::ostream& os, Object const& self){
-		if(self.data.has_value()){
-			auto visitor = [&os](const auto& t){os << t; };
-			std::visit(visitor, self.data.value());
-		} else os << "Nil";
-		return os;
+	Object(Object const& other): data(other.data){}
+
+	std::stringstream to_stringstream() const{
+		std::stringstream ss;
+		if(data.has_value()){
+			auto visitor = [&ss](const auto& t){ss << t; };
+			std::visit(visitor, data.value());
+		} else ss << "Nil";
+		return ss;
 	}
 
 };
 
 class Token{
+public:
 	TokenType type;
 	std::string lexeme;
 	Object literal;
 	size_t line;
 
-public:
 	Token(TokenType _type, std::string_view _lexeme, Object _literal, size_t _line):
-	type(_type), lexeme(_lexeme), literal(_literal), line(_line){}
+		type(_type), lexeme(_lexeme), literal(_literal), line(_line){}
+
+	Token(Token const& other):
+		type(other.type), lexeme(other.lexeme), literal(other.literal), line(other.line){}
+
+	Token& operator=(Token const& other){
+		if(this == &other) return *this;
+		type = other.type;
+		lexeme = other.lexeme;
+		literal = other.literal;
+		line = other.line;
+		return *this;
+	}
 
 	friend std::ostream& operator<<(std::ostream& os, Token const& self){
-		os << enum_table[static_cast<int>(self.type)] << " " << self.lexeme << " " << self.literal << " " << self.line;
+		os << enum_table[static_cast<int>(self.type)] << " " << self.lexeme << " " << self.literal.to_stringstream().str() << " " << self.line;
 		return os;
 	}
 };
+
+typedef std::shared_ptr<Token> TokenPtr;
 
 static const std::unordered_map<std::string, TokenType> key_words{
 	{"and",    TokenType::AND},

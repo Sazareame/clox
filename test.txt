@@ -1,0 +1,6 @@
+if(apple == 3){
+	while(apple != pear){
+		apple = "hello";
+	}
+	pear = 46.232;
+}

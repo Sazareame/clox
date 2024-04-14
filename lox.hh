@@ -2,6 +2,7 @@
 
 #include "stdafx.hh"
 #include "scanner.hh"
+#include "parser.hh"
 
 class Lox{
 public:
@@ -16,6 +17,7 @@ public:
     std::stringstream ss;
     ss << f.rdbuf();
     run(ss.str());
+		getchar();
   }
 
   static void run_prompt(){
@@ -31,8 +33,13 @@ public:
 private:
   static void run(std::string_view source){
 		Scanner scanner(source);
-		for(auto& token: scanner.scan_tokens()){
-			std::cout << token << "\n";
+		auto tokens = scanner.scan_tokens();
+		Parser parser(tokens);
+		try{
+			auto expression = parser.parse();
+			std::cout << expression->ast_print();
+		}catch(std::string e){
+			Lox::report(e);
 		}
   }
 
@@ -41,5 +48,4 @@ public:
 		had_error = true;
 		std::cout << msg;
 	}
-
 };
