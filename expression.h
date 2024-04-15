@@ -6,6 +6,7 @@
 class Expr{
 public:
 	virtual std::string ast_print() = 0;
+	virtual Object evaluate() = 0;
 	virtual ~Expr() = default;
 };
 
@@ -25,6 +26,8 @@ public:
 	std::string ast_print() override{
 		return parenthesis(oper.lexeme, std::vector<ExprPtr>{left, right});
 	}
+
+	Object evaluate()override;
 };
 
 class Grouping: public Expr{
@@ -36,6 +39,7 @@ public:
 	std::string ast_print() override{
 		return parenthesis("group", std::vector<ExprPtr>{expression});
 	}
+	Object evaluate()override;
 };
 
 class Literal: public Expr{
@@ -54,6 +58,7 @@ public:
 	std::string ast_print() override{
 		return lexeme.to_stringstream().str();
 	}
+	Object evaluate()override;
 };
 
 class Unary: public Expr{
@@ -67,6 +72,7 @@ public:
 	std::string ast_print() override{
 		return parenthesis(oper.lexeme, std::vector<ExprPtr>{right});
 	}
+	Object evaluate()override;
 };
 
 inline std::string parenthesis(std::string const& name, std::vector<ExprPtr> const& exprs){
@@ -78,5 +84,10 @@ inline std::string parenthesis(std::string const& name, std::vector<ExprPtr> con
 	}
 	s.push_back(')');
 	return s;
+}
+
+inline void interpreter(ExprPtr expr){
+	auto value = expr->evaluate();
+	std::cout << value.to_stringstream().str();
 }
 

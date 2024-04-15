@@ -24,6 +24,9 @@
     <ClCompile Include="parser.cc">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="interpreter.cc">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="scanner.hh">

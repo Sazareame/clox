@@ -38,6 +38,8 @@ private:
 		try{
 			auto expression = parser.parse();
 			std::cout << expression->ast_print();
+			puts("");
+			interpreter(expression);
 		}catch(std::string e){
 			Lox::report(e);
 		}

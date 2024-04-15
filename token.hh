@@ -37,7 +37,7 @@ static const char* enum_table[39] = {
 };
 
 class Object{
-	std::optional<std::variant<double, std::string, bool, int> > data;
+	std::optional<std::variant<double, std::string, bool> > data;
 
 public:
 	Object(): data(std::nullopt){}
@@ -45,9 +45,13 @@ public:
 	template<class T>
 	Object(T _data): data(_data){}
 
+	template<>
+	Object(int _data) : data(static_cast<double>(_data)){}
+
 	Object(std::string_view _data){
 		data = std::string(_data);
 	}
+
 
 	Object(Object const& other): data(other.data){}
 
@@ -58,6 +62,34 @@ public:
 			std::visit(visitor, data.value());
 		} else ss << "Nil";
 		return ss;
+	}
+
+	template<class T>
+	bool has_type()const{
+		if(!data.has_value()) return false;
+		if(std::get_if<T>(&data.value())) return true;
+		return false;
+	}
+
+	// this function is noexcept, safety check should be done in caller.
+	double number()const noexcept{
+		return std::get<double>(data.value());
+	}
+
+	// this function is noexcept, safety check should be done in caller.
+	std::string string()const noexcept{
+		return std::get<std::string>(data.value());
+	}
+
+	// this function is noexcept, safety check should be done in caller.
+	bool boolean()const noexcept{
+		return std::get<bool>(data.value());
+	}
+
+	bool logic_not()const noexcept{
+		if(!data.has_value()) return true;
+		if(has_type<bool>()) return !std::get<bool>(data.value());
+		return false;
 	}
 
 };
