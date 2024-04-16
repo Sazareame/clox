@@ -4,6 +4,7 @@
 #include "scanner.hh"
 #include "parser.hh"
 
+
 class Lox{
 public:
   static bool had_error;
@@ -26,7 +27,7 @@ public:
     while(std::getline(std::cin, line)){
       run(line);
       had_error = false;
-      std::cout << "\n> ";
+      std::cout << "> ";
     }
   }
 
@@ -36,10 +37,12 @@ private:
 		auto tokens = scanner.scan_tokens();
 		Parser parser(tokens);
 		try{
-			auto expression = parser.parse();
-			std::cout << expression->ast_print();
-			puts("");
-			interpreter(expression);
+			auto stmts = parser.parse();
+			// std::cout << expression->ast_print();
+			// if parser error occured, stmts could contains nullptr, which may result in violation during interpreting.
+			// also, interpreter is not allowed since the script already has syntax error.
+			if(Lox::had_error) return;
+			interpreter(stmts);
 		}catch(std::string e){
 			Lox::report(e);
 		}
@@ -48,6 +51,6 @@ private:
 public:
 	static void report(std::string_view msg){
 		had_error = true;
-		std::cout << msg;
+		std::cout << msg << std::endl;
 	}
 };

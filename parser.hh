@@ -2,7 +2,7 @@
 
 #include "stdafx.hh"
 #include "token.hh"
-#include "expression.h"
+#include "statement.hh"
 
 class Parser{
 	std::vector<Token> tokens;
@@ -48,6 +48,35 @@ class Parser{
 		return previous();
 	}
 
+	StmtPtr statement(){
+		if(is_match(TokenType::PRINT))
+			return print_stmt();
+		return expr_stmt();
+	}
+
+	StmtPtr declaration();
+
+	StmtPtr var_decl(){
+		auto& name = consume(TokenType::IDENTIFIER, "Expect variable name.");
+		ExprPtr initializer = nullptr;
+		if(is_match(TokenType::EQUAL))
+			initializer = expression();
+		consume(TokenType::SEMICOLON, "Expect `;` after variable declaration.");
+		return std::shared_ptr<Stmt>(new Var(name, initializer));
+	}
+
+	StmtPtr print_stmt(){
+		auto value = expression();
+		consume(TokenType::SEMICOLON, "Expect `;` after value.");
+		return std::shared_ptr<Stmt>(new PrintStmt(value));
+	}
+
+	StmtPtr expr_stmt(){
+		auto value = expression();
+		consume(TokenType::SEMICOLON, "Expect `;` after expression.");
+		return std::shared_ptr<Stmt>(new ExprStmt(value));
+	}
+
 	ExprPtr expression(){
 		return equlity();
 	}
@@ -59,15 +88,37 @@ class Parser{
 	ExprPtr unary();
 	ExprPtr primary();
 
-	void consume(TokenType type, std::string_view msg);
+	Token const& consume(TokenType type, std::string_view msg);
 	std::string error(Token const& token, std::string_view msg)const;
+
+	void synchronize(){
+		advance();
+		while(!is_at_end()){
+			if(previous().type == TokenType::SEMICOLON) return;
+			switch(peek().type){
+				case TokenType::CLASS:
+				case TokenType::FUN:
+				case TokenType::VAR:
+				case TokenType::FOR:
+				case TokenType::IF:
+				case TokenType::WHILE:
+				case TokenType::PRINT:
+				case TokenType::RETURN: return;
+				default: break;
+			}
+			advance();
+		}
+	}
 
 public:
 	Parser(std::vector<Token> _tokens){
 		tokens.swap(_tokens);
 	}
 	
-	ExprPtr parse(){
-		return expression();
+	std::vector<StmtPtr> parse(){
+		std::vector<StmtPtr> stmts;
+		while(!is_at_end())
+			stmts.push_back(declaration());
+		return stmts;
 	}
 };

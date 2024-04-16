@@ -5,14 +5,14 @@
 
 class Expr{
 public:
-	virtual std::string ast_print() = 0;
+	// virtual std::string ast_print() = 0;
 	virtual Object evaluate() = 0;
 	virtual ~Expr() = default;
 };
 
 typedef std::shared_ptr<Expr> ExprPtr;
 
-std::string parenthesis(std::string const& name, std::vector<ExprPtr> const& exprs);
+// std::string parenthesis(std::string const& name, std::vector<ExprPtr> const& exprs);
 
 class Binary: public Expr{
 	ExprPtr left;
@@ -23,9 +23,9 @@ public:
 	Binary(ExprPtr _left, Token const& _oper, ExprPtr _right):
 		left(_left), oper(_oper), right(_right){}
 
-	std::string ast_print() override{
-		return parenthesis(oper.lexeme, std::vector<ExprPtr>{left, right});
-	}
+	// std::string ast_print() override{
+	// 	return parenthesis(oper.lexeme, std::vector<ExprPtr>{left, right});
+	// }
 
 	Object evaluate()override;
 };
@@ -36,9 +36,9 @@ class Grouping: public Expr{
 public:
 	Grouping(ExprPtr _expression): expression(_expression){}
 
-	std::string ast_print() override{
-		return parenthesis("group", std::vector<ExprPtr>{expression});
-	}
+	// std::string ast_print() override{
+	// 	return parenthesis("group", std::vector<ExprPtr>{expression});
+	// }
 	Object evaluate()override;
 };
 
@@ -55,9 +55,9 @@ public:
 		lexeme = Object(_lexeme_type);
 	}
 
-	std::string ast_print() override{
-		return lexeme.to_stringstream().str();
-	}
+	// std::string ast_print() override{
+	// 	return lexeme.to_stringstream().str();
+	// }
 	Object evaluate()override;
 };
 
@@ -69,25 +69,29 @@ public:
 	Unary(Token const& _oper, ExprPtr _right):
 		oper(_oper), right(_right){}
 
-	std::string ast_print() override{
-		return parenthesis(oper.lexeme, std::vector<ExprPtr>{right});
-	}
+	// std::string ast_print() override{
+	// 	return parenthesis(oper.lexeme, std::vector<ExprPtr>{right});
+	// }
 	Object evaluate()override;
 };
 
-inline std::string parenthesis(std::string const& name, std::vector<ExprPtr> const& exprs){
-	std::string s = "(";
-	s.append(name);
-	for(const auto& expr : exprs){
-		s.push_back(' ');
-		s.append(expr->ast_print());
-	}
-	s.push_back(')');
-	return s;
-}
+class Variable: public Expr{
+	Token name;
 
-inline void interpreter(ExprPtr expr){
-	auto value = expr->evaluate();
-	std::cout << value.to_stringstream().str();
-}
+public:
+	Variable(Token const& _name): name(_name){};
+	// std::string ast_print() override;
+	Object evaluate()override;
+};
+
+// inline std::string parenthesis(std::string const& name, std::vector<ExprPtr> const& exprs){
+// 	std::string s = "(";
+// 	s.append(name);
+// 	for(const auto& expr : exprs){
+// 		s.push_back(' ');
+// 		s.append(expr->ast_print());
+// 	}
+// 	s.push_back(')');
+// 	return s;
+// }
 

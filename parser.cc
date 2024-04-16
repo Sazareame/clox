@@ -1,6 +1,22 @@
 #include "parser.hh"
 #include "lox.hh"
 
+StmtPtr Parser::declaration(){
+	StmtPtr res = nullptr;
+	try{
+		if(is_match(TokenType::VAR))
+			res = var_decl();
+		else
+			res = statement();
+	} catch(std::string e){
+		std::cout << e << std::endl;
+		synchronize();
+		Lox::had_error = true;
+		return nullptr;
+	}
+	return res;
+}
+
 ExprPtr Parser::equlity(){
 	auto expr = comparision();
 	ExprPtr right = nullptr;
@@ -68,12 +84,14 @@ ExprPtr Parser::primary(){
 		consume(TokenType::RIGHT_PAREN, "Expect ')' after expression.");
 		return std::shared_ptr<Expr>(new Grouping(expr));
 	}
+	if(is_match(TokenType::IDENTIFIER))
+		return std::shared_ptr<Expr>(new Variable(previous()));
 	throw error(peek(), "Expect expression.");
 }
 
-void Parser::consume(TokenType type, std::string_view msg){
+Token const& Parser::consume(TokenType type, std::string_view msg){
 	if(check(type))
-		advance();
+		return advance();
 	else
 		throw error(peek(), msg);
 }

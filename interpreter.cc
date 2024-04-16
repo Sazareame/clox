@@ -1,4 +1,5 @@
-#include "expression.h"
+#include "statement.hh"
+#include "environment.hh"
 
 inline std::string op_error(Token const& op, std::string_view msg){
 	std::stringstream ss;
@@ -62,4 +63,14 @@ Object Unary::evaluate(){
 	if(oper.type == TokenType::BANG){
 		return Object(rhs.logic_not());
 	}
+}
+
+Object Variable::evaluate(){
+	return Environ::get(name);
+}
+
+void Var::execute(){
+	Object value = Object();
+	if(expr) value = expr->evaluate();
+	Environ::define(name.lexeme, value);
 }

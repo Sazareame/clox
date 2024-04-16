@@ -134,10 +134,12 @@
     <ClCompile Include="scaner.cc" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="environment.hh" />
     <ClInclude Include="expression.h" />
     <ClInclude Include="lox.hh" />
     <ClInclude Include="parser.hh" />
     <ClInclude Include="scanner.hh" />
+    <ClInclude Include="statement.hh" />
     <ClInclude Include="stdafx.hh" />
     <ClInclude Include="token.hh" />
   </ItemGroup>
