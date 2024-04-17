@@ -51,6 +51,13 @@ class Parser{
 	StmtPtr statement(){
 		if(is_match(TokenType::PRINT))
 			return print_stmt();
+		else if(is_match(TokenType::LEFT_BRACE)){
+			std::vector<StmtPtr> stmts{};
+			while(!check(TokenType::RIGHT_BRACE) && !is_at_end())
+				stmts.emplace_back(declaration());
+			consume(TokenType::RIGHT_BRACE, "Expect `}` after block.");
+			return std::shared_ptr<Stmt>(new BlockStmt(stmts));
+		}
 		return expr_stmt();
 	}
 

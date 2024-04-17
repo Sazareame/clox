@@ -1,6 +1,8 @@
 #include "statement.hh"
 #include "environment.hh"
 
+extern std::shared_ptr<Environ> global_env;
+
 inline static std::string op_error(TokenPtr op, std::string_view msg){
 	std::stringstream ss;
 	ss << "line " << op->line << ": Operands of " << op->lexeme << " " << msg;
@@ -66,17 +68,32 @@ Object Unary::evaluate(){
 }
 
 Object Variable::evaluate(){
-	return Environ::get(name);
+	return global_env->get(name);
 }
 
 Object Assign::evaluate(){
 	auto res = value->evaluate();
-	Environ::assign(name, res);
+	global_env->assign(name, res);
 	return res;
 }
 
 void Var::execute(){
 	Object value = Object();
 	if(expr) value = expr->evaluate();
-	Environ::define(name->lexeme, value);
+	global_env->define(name->lexeme, value);
+}
+
+void BlockStmt::execute(){
+	std::shared_ptr<Environ> previous = global_env;
+	try{
+		global_env = std::make_shared<Environ>(global_env);
+		for(auto& stmt : stmts){
+			stmt->execute();
+		}
+	} catch(std::string e){
+		// var table should be recovered into its origin.
+		global_env = previous;
+		throw e;
+	}
+	global_env = previous;
 }

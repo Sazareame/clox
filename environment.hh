@@ -5,23 +5,31 @@
 
 class Environ{
 public:
-	static std::unordered_map<std::string, Object> values;
+	std::unordered_map<std::string, Object> values{};
+	std::shared_ptr<Environ> enclosing = nullptr;
 
-	static void define(std::string const& name, Object const& value){
+	Environ() = default;
+	Environ(std::shared_ptr<Environ> _enclosing): enclosing(_enclosing){}
+	void define(std::string const& name, Object const& value){
 		values.insert({name, value});
 	}
 
-	static Object const& get(TokenPtr name){
+	Object const& get(TokenPtr name){
 		if(auto res = values.find(name->lexeme); res != values.end())
 			return res->second;
+		if(enclosing) return enclosing->get(name);
 		std::stringstream ss;
 		ss << "Undefined variable " << name->lexeme << ".";
 		throw ss.str();
 	}
 
-	static void assign(TokenPtr name, Object const& value){
+	void assign(TokenPtr name, Object const& value){
 		if(auto res = values.find(name->lexeme); res != values.end()){
 			values[name->lexeme] = value;
+			return;
+		}
+		if(enclosing){
+			enclosing->assign(name, value);
 			return;
 		}
 		std::stringstream ss;

@@ -41,6 +41,16 @@ public:
 	void execute()override;
 };
 
+class BlockStmt: public Stmt{
+	std::vector<StmtPtr> stmts{};
+
+public:
+	BlockStmt(std::vector<StmtPtr> _stmts){
+		stmts.swap(_stmts);
+	}
+	void execute()override;
+};
+
 inline void interpreter(std::vector<StmtPtr> const& stmts){
 	for(auto const& stmt : stmts)
 		stmt->execute();

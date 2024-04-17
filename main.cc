@@ -13,8 +13,7 @@ Well, I do have time to use smart pointer to replace those Token which should no
 */
 
 bool Lox::had_error = false;
-std::unordered_map<std::string, Object> Environ::values{};
-
+std::shared_ptr<Environ> global_env{new Environ()};
 
 signed main(int argc, char const** argv){
   if(argc == 1) Lox::run_prompt();
