@@ -11,11 +11,21 @@ public:
 		values.insert({name, value});
 	}
 
-	static Object const& get(Token const& name){
-		if(auto res = values.find(name.lexeme); res != values.end())
+	static Object const& get(TokenPtr name){
+		if(auto res = values.find(name->lexeme); res != values.end())
 			return res->second;
 		std::stringstream ss;
-		ss << "Undefined variable " << name.lexeme << ".";
+		ss << "Undefined variable " << name->lexeme << ".";
+		throw ss.str();
+	}
+
+	static void assign(TokenPtr name, Object const& value){
+		if(auto res = values.find(name->lexeme); res != values.end()){
+			values[name->lexeme] = value;
+			return;
+		}
+		std::stringstream ss;
+		ss << "Undefined variable " << name->lexeme << ".";
 		throw ss.str();
 	}
 };

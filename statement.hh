@@ -33,11 +33,11 @@ public:
 };
 
 class Var: public Stmt{
-	Token name;
+	TokenPtr name;
 	ExprPtr expr;
 
 public:
-	Var(Token const& _name, ExprPtr _expr): name(_name), expr(_expr){}
+	Var(TokenPtr _name, ExprPtr _expr): name(_name), expr(_expr){}
 	void execute()override;
 };
 

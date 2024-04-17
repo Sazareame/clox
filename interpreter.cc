@@ -1,24 +1,24 @@
 #include "statement.hh"
 #include "environment.hh"
 
-inline std::string op_error(Token const& op, std::string_view msg){
+inline static std::string op_error(TokenPtr op, std::string_view msg){
 	std::stringstream ss;
-	ss << "line " << op.line << ": Operands of " << op.lexeme << " " << msg;
+	ss << "line " << op->line << ": Operands of " << op->lexeme << " " << msg;
 	return ss.str();
 }
 
-inline bool check_addtion(Token const& op, Object const& lhs, Object const& rhs){
+inline static bool check_addtion(TokenPtr op, Object const& lhs, Object const& rhs){
 	if(lhs.has_type<double>() && rhs.has_type<double>()) return true;
 	if(lhs.has_type<std::string>() && rhs.has_type<std::string>()) return false;
 	throw op_error(op, "must be number or string.");
 }
 
-inline void check_operands(Token const& op, Object const& lhs, Object const& rhs){
+inline static void check_operands(TokenPtr op, Object const& lhs, Object const& rhs){
 	if(lhs.has_type<double>() && rhs.has_type<double>()) return;
 	throw op_error(op, "must be number.");
 }
 
-inline void check_operand(Token const& op, Object const& hs){
+inline static void check_operand(TokenPtr op, Object const& hs){
 	if(hs.has_type<double>()) return;
 	throw op_error(op, "must be number.");
 }
@@ -26,14 +26,14 @@ inline void check_operand(Token const& op, Object const& hs){
 Object Binary::evaluate(){
 	auto lhs = left->evaluate();
 	auto rhs = right->evaluate();
-	if(oper.type == TokenType::PLUS){
+	if(oper->type == TokenType::PLUS){
 		if(check_addtion(oper, lhs, rhs))
 			return Object(lhs.number() + rhs.number());
 		else
 			return Object(lhs.string() + rhs.string());
 	}
 	check_operands(oper, lhs, rhs);
-	switch(oper.type){
+	switch(oper->type){
 		case TokenType::MINUS: return Object(lhs.number() - rhs.number()); break;
 		case TokenType::SLASH: return Object(lhs.number() / rhs.number()); break;
 		case TokenType::STAR: return Object(lhs.number() * rhs.number()); break;
@@ -56,11 +56,11 @@ Object Grouping::evaluate(){
 
 Object Unary::evaluate(){
 	auto rhs = right->evaluate();
-	if(oper.type == TokenType::MINUS){
+	if(oper->type == TokenType::MINUS){
 		check_operand(oper, rhs);
 		return Object(-rhs.number());
 	}
-	if(oper.type == TokenType::BANG){
+	if(oper->type == TokenType::BANG){
 		return Object(rhs.logic_not());
 	}
 }
@@ -69,8 +69,14 @@ Object Variable::evaluate(){
 	return Environ::get(name);
 }
 
+Object Assign::evaluate(){
+	auto res = value->evaluate();
+	Environ::assign(name, res);
+	return res;
+}
+
 void Var::execute(){
 	Object value = Object();
 	if(expr) value = expr->evaluate();
-	Environ::define(name.lexeme, value);
+	Environ::define(name->lexeme, value);
 }

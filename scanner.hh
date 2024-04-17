@@ -5,7 +5,7 @@
 
 class Scanner{
 	std::string_view source;
-	std::vector<Token> tokens{};
+	std::vector<TokenPtr> tokens{};
 	size_t start = 0;
 	size_t current = 0;
 	size_t line = 1;
@@ -20,7 +20,7 @@ class Scanner{
 
 	void add_token(TokenType type, Object literal){
 		auto text = source.substr(start, current - start);
-		tokens.emplace_back(type, text, literal, line);
+		tokens.emplace_back(new Token(type, text, literal, line));
 	}
 
 	void add_token(TokenType type){
@@ -61,5 +61,5 @@ class Scanner{
 public:
 	Scanner(std::string_view _source): source(_source){}
 
-	std::vector<Token> scan_tokens();
+	std::vector<TokenPtr> scan_tokens();
 };

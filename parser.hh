@@ -5,18 +5,18 @@
 #include "statement.hh"
 
 class Parser{
-	std::vector<Token> tokens;
+	std::vector<TokenPtr> tokens;
 	size_t current{0};
 
-	Token const& peek()const{
+	TokenPtr peek()const{
 		return tokens[current];
 	}
 
 	bool is_at_end()const{
-		return peek().type == TokenType::EEOF;
+		return peek()->type == TokenType::EEOF;
 	}
 
-	Token const& previous()const{
+	TokenPtr previous()const{
 		return tokens[current - 1];
 	}
 
@@ -40,10 +40,10 @@ class Parser{
 
 	bool check(TokenType type)const{
 		if(is_at_end()) return false;
-		return peek().type == type;
+		return peek()->type == type;
 	}
 
-	Token const& advance(){
+	TokenPtr advance(){
 		if(!is_at_end()) ++current;
 		return previous();
 	}
@@ -57,7 +57,7 @@ class Parser{
 	StmtPtr declaration();
 
 	StmtPtr var_decl(){
-		auto& name = consume(TokenType::IDENTIFIER, "Expect variable name.");
+		auto name = consume(TokenType::IDENTIFIER, "Expect variable name.");
 		ExprPtr initializer = nullptr;
 		if(is_match(TokenType::EQUAL))
 			initializer = expression();
@@ -78,9 +78,10 @@ class Parser{
 	}
 
 	ExprPtr expression(){
-		return equlity();
+		return assignment();
 	}
 
+	ExprPtr assignment();
 	ExprPtr equlity();
 	ExprPtr comparision();
 	ExprPtr term();
@@ -88,14 +89,14 @@ class Parser{
 	ExprPtr unary();
 	ExprPtr primary();
 
-	Token const& consume(TokenType type, std::string_view msg);
-	std::string error(Token const& token, std::string_view msg)const;
+	TokenPtr consume(TokenType type, std::string_view msg);
+	std::string error(TokenPtr token, std::string_view msg)const;
 
 	void synchronize(){
 		advance();
 		while(!is_at_end()){
-			if(previous().type == TokenType::SEMICOLON) return;
-			switch(peek().type){
+			if(previous()->type == TokenType::SEMICOLON) return;
+			switch(peek()->type){
 				case TokenType::CLASS:
 				case TokenType::FUN:
 				case TokenType::VAR:
@@ -111,7 +112,7 @@ class Parser{
 	}
 
 public:
-	Parser(std::vector<Token> _tokens){
+	Parser(std::vector<TokenPtr> _tokens){
 		tokens.swap(_tokens);
 	}
 	

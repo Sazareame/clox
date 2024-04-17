@@ -16,11 +16,11 @@ typedef std::shared_ptr<Expr> ExprPtr;
 
 class Binary: public Expr{
 	ExprPtr left;
-	Token oper;
+	TokenPtr oper;
 	ExprPtr right;
 
 public:
-	Binary(ExprPtr _left, Token const& _oper, ExprPtr _right):
+	Binary(ExprPtr _left, TokenPtr _oper, ExprPtr _right):
 		left(_left), oper(_oper), right(_right){}
 
 	// std::string ast_print() override{
@@ -62,11 +62,11 @@ public:
 };
 
 class Unary: public Expr{
-	Token oper;
+	TokenPtr oper;
 	ExprPtr right;
 
 public:
-	Unary(Token const& _oper, ExprPtr _right):
+	Unary(TokenPtr _oper, ExprPtr _right):
 		oper(_oper), right(_right){}
 
 	// std::string ast_print() override{
@@ -76,11 +76,25 @@ public:
 };
 
 class Variable: public Expr{
-	Token name;
+	TokenPtr name;
 
 public:
-	Variable(Token const& _name): name(_name){};
+	Variable(TokenPtr _name): name(_name){};
 	// std::string ast_print() override;
+
+	Object evaluate()override;
+
+	TokenPtr get_name()const{
+		return name;
+	}
+};
+
+class Assign: public Expr{
+	TokenPtr name;
+	ExprPtr value;
+
+public:
+	Assign(TokenPtr _name, ExprPtr _value): name(_name), value(_value){}
 	Object evaluate()override;
 };
 

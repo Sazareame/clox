@@ -17,11 +17,25 @@ StmtPtr Parser::declaration(){
 	return res;
 }
 
+ExprPtr Parser::assignment(){
+	auto expr = equlity();
+	if(is_match(TokenType::EQUAL)){
+		auto equals = previous();
+		auto value = assignment();
+		if(auto var = std::dynamic_pointer_cast<Variable>(expr)){
+			auto name = var->get_name();
+			return std::shared_ptr<Expr>(new Assign(name, value));
+		}
+		throw error(equals, "Invalid assignment target.");
+	}
+	return expr;
+}
+
 ExprPtr Parser::equlity(){
 	auto expr = comparision();
 	ExprPtr right = nullptr;
 	while(is_match(TokenType::BANG_EQUAL, TokenType::EQUAL_EQUAL)){
-		auto& operat = previous();
+		auto operat = previous();
 		right = comparision();
 		expr = std::shared_ptr<Expr>(new Binary(expr, operat, right));
 	}
@@ -32,7 +46,7 @@ ExprPtr Parser::comparision(){
 	auto expr = term();
 	ExprPtr right = nullptr;
 	while(is_match(TokenType::GREATER, TokenType::GREATER_EQUAL, TokenType::LESS, TokenType::LESS_EQUAL)){
-		auto& operat = previous();
+		auto operat = previous();
 		right = term();
 		expr = std::shared_ptr<Expr>(new Binary(expr, operat, right));
 	}
@@ -43,7 +57,7 @@ ExprPtr Parser::term(){
 	auto expr = factor();
 	ExprPtr right = nullptr;
 	while(is_match(TokenType::MINUS, TokenType::PLUS)){
-		auto& operat = previous();
+		auto operat = previous();
 		right = factor();
 		expr = std::shared_ptr<Expr>(new Binary(expr, operat, right));
 	}
@@ -54,7 +68,7 @@ ExprPtr Parser::factor(){
 	auto expr = unary();
 	ExprPtr right = nullptr;
 	while(is_match(TokenType::SLASH, TokenType::STAR)){
-		auto& operat = previous();
+		auto operat = previous();
 		right = unary();
 		expr = std::shared_ptr<Expr>(new Binary(expr, operat, right));
 	}
@@ -63,7 +77,7 @@ ExprPtr Parser::factor(){
 
 ExprPtr Parser::unary(){
 	if(is_match(TokenType::BANG, TokenType::MINUS)){
-		auto& operat = previous();
+		auto operat = previous();
 		auto right = unary();
 		return std::shared_ptr<Expr>(new Unary(operat, right));
 	}
@@ -78,7 +92,7 @@ ExprPtr Parser::primary(){
 	if(is_match(TokenType::NIL))
 		return std::shared_ptr<Expr>(new Literal());
 	if(is_match(TokenType::STRING, TokenType::NUMBER))
-		return std::shared_ptr<Expr>(new Literal(previous().literal));
+		return std::shared_ptr<Expr>(new Literal(previous()->literal));
 	if(is_match(TokenType::LEFT_PAREN)){
 		auto expr = expression();
 		consume(TokenType::RIGHT_PAREN, "Expect ')' after expression.");
@@ -89,18 +103,18 @@ ExprPtr Parser::primary(){
 	throw error(peek(), "Expect expression.");
 }
 
-Token const& Parser::consume(TokenType type, std::string_view msg){
+TokenPtr Parser::consume(TokenType type, std::string_view msg){
 	if(check(type))
 		return advance();
 	else
 		throw error(peek(), msg);
 }
 
-std::string Parser::error(Token const& token, std::string_view msg)const{
+std::string Parser::error(TokenPtr token, std::string_view msg)const{
 	std::stringstream ss;
-	if(token.type == TokenType::EEOF)
-		ss << "line " << token.line << " at the end: " << msg;
+	if(token->type == TokenType::EEOF)
+		ss << "line " << token->line << " at the end: " << msg;
 	else
-		ss << "line " << token.line << " at " << token.lexeme << ": " << msg;
+		ss << "line " << token->line << " at " << token->lexeme << ": " << msg;
 	return ss.str();
 }

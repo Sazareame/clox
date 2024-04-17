@@ -76,12 +76,12 @@ void Scanner::scan_token(void){
 	}
 }
 
-std::vector<Token> Scanner::scan_tokens(){
+std::vector<TokenPtr> Scanner::scan_tokens(){
 	while(!is_at_end()){
 		start = current;
 		scan_token();
-		if(Lox::had_error) return std::vector<Token>();
+		if(Lox::had_error) return std::vector<TokenPtr>();
 	}
-	tokens.emplace_back(TokenType::EEOF, " ", Object(), line);
+	tokens.emplace_back(new Token(TokenType::EEOF, " ", Object(), line));
 	return tokens;
 }
