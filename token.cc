@@ -29,8 +29,10 @@ Object FuncType::call(std::vector<Object> const& args){
 	try{
 		def->body->execute();
 	} catch(Object ret){
+		global_env = previous;
 		return ret;
 	}
+	global_env = previous;
 	return Object();
 }
 
