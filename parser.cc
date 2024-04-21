@@ -6,6 +6,8 @@ StmtPtr Parser::declaration(){
 	try{
 		if(is_match(TokenType::VAR))
 			res = var_decl();
+		else if(is_match(TokenType::FUN))
+			res = func_def();
 		else
 			res = statement();
 	} catch(std::string e){
@@ -16,9 +18,25 @@ StmtPtr Parser::declaration(){
 	}
 	return res;
 }
+ StmtPtr Parser::func_def(){
+	auto name = consume(TokenType::IDENTIFIER, "Expect function name.");
+	consume(TokenType::LEFT_PAREN, "Expect `(` before function name.");
+	std::vector<TokenPtr> parameters{};
+	if(!check(TokenType::RIGHT_PAREN)){
+		do{
+			if(parameters.size() >= 255)
+				error(peek(), "Maximum argument number is limited to 255.");
+			parameters.push_back(consume(TokenType::IDENTIFIER, "Expect parameter name."));
+		} while(is_match(TokenType::COMMA));
+	}
+	consume(TokenType::RIGHT_PAREN, "Expect `)` after parameter list.");
+	consume(TokenType::LEFT_BRACE, "Expect `{` before function body.");
+	auto body = block();
+	return std::shared_ptr<Stmt>(new FuncDefinition(name, parameters, body));
+}
 
 ExprPtr Parser::assignment(){
-	auto expr = equlity();
+	auto expr = orr();
 	if(is_match(TokenType::EQUAL)){
 		auto equals = previous();
 		auto value = assignment();
@@ -29,6 +47,62 @@ ExprPtr Parser::assignment(){
 		throw error(equals, "Invalid assignment target.");
 	}
 	return expr;
+}
+
+ExprPtr Parser::orr(){
+	auto expr = andd();
+	while(is_match(TokenType::OR)){
+		auto oper = previous();
+		auto right = andd();
+		expr = std::shared_ptr<Expr>(new Logical(expr, oper, right));
+	}
+	return expr;
+}
+
+ExprPtr Parser::andd(){
+	auto expr = equlity();
+	while(is_match(TokenType::AND)){
+		auto oper = previous();
+		auto right = equlity();
+		expr = std::shared_ptr<Expr>(new Logical(expr, oper, right));
+	}
+	return expr;
+}
+
+StmtPtr Parser::for_stmt(){
+	consume(TokenType::LEFT_PAREN, "Expect `(` after keyword for.");
+	StmtPtr initializer = nullptr;
+	if(is_match(TokenType::SEMICOLON));
+	else if(is_match(TokenType::VAR))
+		initializer = var_decl();
+	else
+		initializer = expr_stmt();
+
+	ExprPtr condition = nullptr;
+	if(!check(TokenType::SEMICOLON))
+		condition = expression();
+	consume(TokenType::SEMICOLON, "Expect `;` after condition expr.");
+
+	ExprPtr action = nullptr;
+	if(!check(TokenType::RIGHT_PAREN))
+		action = expression();
+	consume(TokenType::RIGHT_PAREN, "Expect `)` after clause.");
+
+	StmtPtr body = statement();
+
+	if(action){
+		std::vector<StmtPtr> block{body, std::shared_ptr<Stmt>(new ExprStmt(action))};
+		body = std::shared_ptr<Stmt>(new BlockStmt(block));
+	}
+
+	if(!condition)
+		condition = std::shared_ptr<Expr>(new Literal(true));
+	body = std::shared_ptr<Stmt>(new WhileStmt(condition, body));
+
+	if(initializer)
+		body = std::shared_ptr<Stmt>(new BlockStmt(std::vector<StmtPtr>{initializer, body}));
+
+	return body;
 }
 
 ExprPtr Parser::equlity(){
@@ -81,7 +155,32 @@ ExprPtr Parser::unary(){
 		auto right = unary();
 		return std::shared_ptr<Expr>(new Unary(operat, right));
 	}
-	return primary();
+	return call();
+}
+
+ExprPtr Parser::call(){
+	auto expr = primary();
+	for(;;){
+		if(is_match(TokenType::LEFT_PAREN))
+			expr = to_call(expr);
+		else
+			break;
+	}
+	return expr;
+}
+
+ExprPtr Parser::to_call(ExprPtr callee){
+	std::vector<ExprPtr> args{};
+	if(!check(TokenType::RIGHT_PAREN)){
+		do{
+			if(args.size() >= 255)
+				error(peek(), "Maximum argument number is limited to 255");
+			args.push_back(expression());
+		} while(is_match(TokenType::COMMA));
+	}
+	
+	auto paren = consume(TokenType::RIGHT_PAREN, "Expect `)` after arguments.");
+	return std::shared_ptr<Expr>(new Call(callee, paren, args));
 }
 
 ExprPtr Parser::primary(){

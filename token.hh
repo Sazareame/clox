@@ -36,8 +36,11 @@ static const char* enum_table[39] = {
 	"EOF"
 };
 
+class Callable;
+typedef std::shared_ptr<Callable> CallablePtr;
+
 class Object{
-	std::optional<std::variant<double, std::string, bool> > data;
+	std::optional<std::variant<double, std::string, bool, CallablePtr> > data;
 
 public:
 	Object(): data(std::nullopt){}
@@ -55,15 +58,8 @@ public:
 
 	Object(Object const& other): data(other.data){}
 
-	std::stringstream to_stringstream() const{
-		std::stringstream ss;
-		if(data.has_value()){
-			auto visitor = [&ss](const auto& t){ss << t; };
-			std::visit(visitor, data.value());
-		} else ss << "Nil";
-		return ss;
-	}
-
+	std::stringstream to_stringstream() const;
+	
 	template<class T>
 	bool has_type()const{
 		if(!data.has_value()) return false;
@@ -86,12 +82,70 @@ public:
 		return std::get<bool>(data.value());
 	}
 
+	// this function is noexcept, safety check should be done in caller.
+	CallablePtr callable()const noexcept{
+		return std::get<CallablePtr>(data.value());
+	}
+
 	bool logic_not()const noexcept{
 		if(!data.has_value()) return true;
 		if(has_type<bool>()) return !std::get<bool>(data.value());
 		return false;
 	}
 
+	bool is_true()const noexcept{
+		return !logic_not();
+	}
+
+};
+
+class FuncDefinition;
+
+class Callable{
+public:
+	virtual ~Callable() = default;
+	virtual Object call(std::vector<Object> const& args) = 0;
+	virtual int arity()const = 0;
+	virtual std::stringstream to_stringstream()const = 0;
+};
+
+typedef std::shared_ptr<Callable> CallablePtr;
+
+class FuncType: public Callable{
+	FuncDefinition* def;
+	int _arity;
+public:
+	FuncType(FuncDefinition* _def);
+
+	Object call(std::vector<Object> const& args)override;
+
+	int arity()const override{
+		return _arity;
+	}
+	std::stringstream to_stringstream()const override;
+};
+
+template<class F>
+class BuiltinFunc: public Callable{
+	F body;
+	int func_arity;
+
+public:
+	BuiltinFunc(F _body, int _arity): body(_body), func_arity(_arity){}
+
+	int arity()const override{
+		return func_arity;
+	}
+
+	Object call(std::vector<Object> const& args)override{
+		return Object(body());
+	}
+
+	std::stringstream to_stringstream()const override{
+		std::stringstream ss;
+		ss << "<Builtin Function>";
+		return ss;
+	}
 };
 
 class Token{

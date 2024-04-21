@@ -1,7 +1,7 @@
 #pragma once
 
 #include "stdafx.hh"
-#include "expression.h"
+#include "expression.hh"
 
 class Stmt{
 public:
@@ -48,6 +48,47 @@ public:
 	BlockStmt(std::vector<StmtPtr> _stmts){
 		stmts.swap(_stmts);
 	}
+	void execute()override;
+};
+
+class IfStmt: public Stmt{
+	ExprPtr condition;
+	StmtPtr then;
+	StmtPtr els;
+
+public:
+	IfStmt(ExprPtr _condition, StmtPtr _then, StmtPtr _els): condition(_condition), then(_then), els(_els){}
+	void execute()override;
+};
+
+class WhileStmt: public Stmt{
+	ExprPtr condition;
+	StmtPtr body;
+
+public:
+	WhileStmt(ExprPtr _condition, StmtPtr _body): condition(_condition), body(_body){}
+	void execute()override;
+};
+
+class FuncDefinition: public Stmt{
+	TokenPtr name;
+	std::vector<TokenPtr> params;
+	StmtPtr body;
+
+public:
+	friend class FuncType;
+	FuncDefinition(TokenPtr _name, std::vector<TokenPtr> _params, StmtPtr _body): name(_name), body(_body){
+		params.swap(_params);
+	}
+	void execute()override;
+};
+
+class RetStmt: public Stmt{
+	TokenPtr keyword;
+	ExprPtr ret_value;
+
+public:
+	RetStmt(TokenPtr _keyword, ExprPtr _value): keyword(_keyword), ret_value(_value){}
 	void execute()override;
 };
 

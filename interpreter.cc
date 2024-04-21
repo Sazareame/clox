@@ -77,6 +77,39 @@ Object Assign::evaluate(){
 	return res;
 }
 
+Object Logical::evaluate(){
+	auto left_value = left->evaluate();
+	if(oper->type == TokenType::OR){
+		if(left_value.is_true())
+			return left_value;
+	} else{
+		if(!left_value.is_true())
+			return left_value;
+	}
+	return right->evaluate();
+}
+
+Object Call::evaluate(){
+	auto _caller = callee->evaluate();
+	std::vector<Object> args{};
+	for(auto const& arg : arguments)
+		args.push_back(arg->evaluate());
+	CallablePtr caller = 0;
+	if(_caller.has_type<CallablePtr>())
+		caller = _caller.callable();
+	else{
+		std::stringstream ss;
+		ss << "line " << paren->line << ": " << _caller.to_stringstream().str() << " is not callable type.";
+		throw ss.str();
+	}
+	if(caller->arity() != arguments.size()){
+		std::stringstream ss;
+		ss << "line " << paren->line << ": " << "Expect " << caller->arity() << " arguments, but got " << arguments.size() << ".";
+		throw ss.str();
+	}
+	return caller->call(args);
+}
+
 void Var::execute(){
 	Object value = Object();
 	if(expr) value = expr->evaluate();
@@ -96,4 +129,27 @@ void BlockStmt::execute(){
 		throw e;
 	}
 	global_env = previous;
+}
+
+void IfStmt::execute(){
+	if(condition->evaluate().is_true())
+		then->execute();
+	else if(els)
+		els->execute();
+	return;
+}
+
+void WhileStmt::execute(){
+	while(condition->evaluate().is_true())
+		body->execute();
+}
+
+void FuncDefinition::execute(){
+	Object value = Object(std::shared_ptr<Callable>(new FuncType(this)));
+	global_env->define(name->lexeme, value);
+}
+
+void RetStmt::execute(){
+	Object ret = ret_value ? ret_value->evaluate() : Object();
+	throw ret;
 }

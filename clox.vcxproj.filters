@@ -27,6 +27,9 @@
     <ClCompile Include="interpreter.cc">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="token.cc">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="scanner.hh">
@@ -41,7 +44,7 @@
     <ClInclude Include="lox.hh">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="expression.h">
+    <ClInclude Include="expression.hh">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="parser.hh">

@@ -51,14 +51,51 @@ class Parser{
 	StmtPtr statement(){
 		if(is_match(TokenType::PRINT))
 			return print_stmt();
-		else if(is_match(TokenType::LEFT_BRACE)){
-			std::vector<StmtPtr> stmts{};
-			while(!check(TokenType::RIGHT_BRACE) && !is_at_end())
-				stmts.emplace_back(declaration());
-			consume(TokenType::RIGHT_BRACE, "Expect `}` after block.");
-			return std::shared_ptr<Stmt>(new BlockStmt(stmts));
-		}
+		if(is_match(TokenType::LEFT_BRACE))
+			return block();
+		if(is_match(TokenType::IF))
+			return if_stmt();
+		if(is_match(TokenType::WHILE))
+			return while_stmt();
+		if(is_match(TokenType::FOR))
+			return for_stmt();
+		if(is_match(TokenType::RETURN))
+			return ret_stmt();
 		return expr_stmt();
+	}
+
+	StmtPtr ret_stmt(){
+		auto keyword = previous();
+		ExprPtr value = !check(TokenType::SEMICOLON) ? expression() : 0;
+		consume(TokenType::SEMICOLON, "Expect `;` after return statement.");
+		return std::shared_ptr<Stmt>(new RetStmt(keyword, value));
+	}
+
+	StmtPtr block(){
+		std::vector<StmtPtr> stmts{};
+		while(!check(TokenType::RIGHT_BRACE) && !is_at_end())
+			stmts.emplace_back(declaration());
+		consume(TokenType::RIGHT_BRACE, "Expect `}` after block.");
+		return std::shared_ptr<Stmt>(new BlockStmt(stmts));
+	}
+
+	StmtPtr if_stmt(){
+		consume(TokenType::LEFT_PAREN, "Expect `(` after keyword if.");
+		auto condition = expression();
+		consume(TokenType::RIGHT_PAREN, "Expect `)` after condition.");
+		auto then = statement();
+		StmtPtr els = nullptr;
+		if(is_match(TokenType::ELSE))
+			els = statement();
+		return std::shared_ptr<Stmt>(new IfStmt(condition, then, els));
+	}
+
+	StmtPtr while_stmt(){
+		consume(TokenType::LEFT_PAREN, "Expect `(` after keyword while.");
+		auto condition = expression();
+		consume(TokenType::RIGHT_PAREN, "Expect `)` after condition expr.");
+		auto body = statement();
+		return std::shared_ptr<Stmt>(new WhileStmt(condition, body));
 	}
 
 	StmtPtr declaration();
@@ -88,12 +125,18 @@ class Parser{
 		return assignment();
 	}
 
+	StmtPtr for_stmt();
+	StmtPtr func_def();
 	ExprPtr assignment();
+	ExprPtr orr();
+	ExprPtr andd();
 	ExprPtr equlity();
 	ExprPtr comparision();
 	ExprPtr term();
 	ExprPtr factor();
 	ExprPtr unary();
+	ExprPtr call();
+	ExprPtr to_call(ExprPtr callee);
 	ExprPtr primary();
 
 	TokenPtr consume(TokenType type, std::string_view msg);

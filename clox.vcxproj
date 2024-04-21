@@ -132,10 +132,11 @@
     <ClCompile Include="main.cc" />
     <ClCompile Include="parser.cc" />
     <ClCompile Include="scaner.cc" />
+    <ClCompile Include="token.cc" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="environment.hh" />
-    <ClInclude Include="expression.h" />
+    <ClInclude Include="expression.hh" />
     <ClInclude Include="lox.hh" />
     <ClInclude Include="parser.hh" />
     <ClInclude Include="scanner.hh" />

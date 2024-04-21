@@ -14,8 +14,12 @@ Well, I do have time to use smart pointer to replace those Token which should no
 
 bool Lox::had_error = false;
 std::shared_ptr<Environ> global_env{new Environ()};
+auto builtin_clock_body = [](){return static_cast<double>(time(0));};
+auto builtin_clock = Object(std::shared_ptr<Callable>(new BuiltinFunc(builtin_clock_body, 0)));
+
 
 signed main(int argc, char const** argv){
+	global_env->define("clock", builtin_clock);
   if(argc == 1) Lox::run_prompt();
   else if(argc == 2) Lox::run_file(argv[1]);
   else{

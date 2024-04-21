@@ -98,6 +98,28 @@ public:
 	Object evaluate()override;
 };
 
+class Logical: public Expr{
+	ExprPtr left;
+	TokenPtr oper;
+	ExprPtr right;
+
+public:
+	Logical(ExprPtr _left, TokenPtr _oper, ExprPtr _right): left(_left), oper(_oper), right(_right){}
+	Object evaluate()override;
+};
+
+class Call: public Expr{
+	ExprPtr callee;
+	TokenPtr paren;
+	std::vector<ExprPtr> arguments;
+
+public:
+	Call(ExprPtr _callee, TokenPtr _paren, std::vector<ExprPtr> _arguments): callee(_callee), paren(_paren){
+		arguments.swap(_arguments);
+	}
+	Object evaluate()override;
+};
+
 // inline std::string parenthesis(std::string const& name, std::vector<ExprPtr> const& exprs){
 // 	std::string s = "(";
 // 	s.append(name);
